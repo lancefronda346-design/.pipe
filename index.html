@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ME PIPE Board Exam Reviewer (2,499 Questions)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .option-btn {
+      transition: all 0.2s ease-in-out;
+    }
+    .option-btn:hover:not(:disabled) {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-6">
+
+  <!-- Header -->
+  <header class="max-w-4xl w-full mx-auto flex items-center justify-between pb-4 border-b border-slate-700">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-blue-500/30">
+        <i class="fa-solid fa-gear"></i>
+      </div>
+      <div>
+        <h1 class="text-lg sm:text-xl font-bold text-white">ME PIPE Board Exam Quizzer</h1>
+        <p class="text-xs text-slate-400">Interactive Quizzer • 2,499 Questions with Explanations</p>
+      </div>
+    </div>
+    <div id="stats" class="text-right text-xs text-slate-300">
+      <div>Score: <span id="scoreText" class="font-bold text-green-400">0</span> / <span id="totalAttempted">0</span></div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl w-full mx-auto my-6 flex-1">
+    
+    <!-- Jump to Question / Search Bar -->
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-xs text-slate-400">
+        <label for="jumpInput">Jump to Question:</label>
+        <input type="number" id="jumpInput" min="1" max="2499" placeholder="1-2499" class="w-24 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500">
+        <button onclick="jumpToQuestion()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 text-xs">Go</button>
+      </div>
+      <button onclick="randomQuestion()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1">
+        <i class="fa-solid fa-shuffle"></i> Random
+      </button>
+    </div>
+
+    <!-- Quiz Card -->
+    <div id="quizCard" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      
+      <!-- Progress Bar & Question Info -->
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+        <span id="questionNum">Question 1 of 2499</span>
+        <span id="categoryTag" class="px-2.5 py-1 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30">PIPE-01</span>
+      </div>
+      
+      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+        <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+
+      <!-- Question Text -->
+      <h2 id="questionText" class="text-lg sm:text-xl font-bold text-white leading-relaxed">
+        Loading question...
+      </h2>
+
+      <!-- Options Container -->
+      <div id="optionsContainer" class="space-y-3">
+        <!-- Options generated dynamically -->
+      </div>
+
+      <!-- Explanation Box (Shows after answering) -->
+      <div id="explanationBox" class="hidden p-4 rounded-xl border border-slate-700 bg-slate-900/90 space-y-2">
+        <div class="flex items-center gap-2 font-bold text-sm text-blue-400">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Explanation & Reference:</span>
+        </div>
+        <p id="explanationText" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
+        <button id="prevBtn" onclick="prevQuestion()" class="px-4 py-2 text-sm rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-40" disabled>
+          <i class="fa-solid fa-arrow-left mr-1"></i> Previous
+        </button>
+        <button id="nextBtn" onclick="nextQuestion()" class="px-5 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold transition">
+          Next Question <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-4xl w-full mx-auto text-center text-xs text-slate-500 pt-4">
+    Mechanical Engineering Power & Industrial Plant Engineering (PIPE) Reviewer • GitHub Pages Ready
+  </footer>
+
+  <!-- Include 2,499 Questions Data File -->
+  <script src="questions.js"></script>
+
+  <script>
+    let currentIndex = 0;
+    let score = 0;
+    let answered = {};
+
+    function loadQuestion() {
+      if (typeof quizData === 'undefined' || !quizData.length) {
+        document.getElementById('questionText').innerText = "Error: questions.js file not found or empty. Please ensure questions.js is in the same repository folder.";
+        return;
+      }
+
+      const item = quizData[currentIndex];
+      document.getElementById('questionNum').innerText = `Question ${currentIndex + 1} of ${quizData.length}`;
+      document.getElementById('categoryTag').innerText = item.n || `PIPE-${currentIndex + 1}`;
+      document.getElementById('questionText').innerText = item.q;
+      
+      const pct = ((currentIndex + 1) / quizData.length) * 100;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      const optionsDiv = document.getElementById('optionsContainer');
+      optionsDiv.innerHTML = '';
+
+      const keys = ['A', 'B', 'C', 'D'];
+      const fieldMap = { 'A': item.a, 'B': item.b, 'C': item.c, 'D': item.d };
+
+      keys.forEach(letter => {
+        const optionVal = fieldMap[letter];
+        if (!optionVal) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'option-btn w-full p-3.5 text-left text-sm font-medium rounded-xl border border-slate-700 bg-slate-800/80 text-slate-200 flex items-center justify-between';
+        btn.innerHTML = `<span><strong class="text-blue-400 mr-2">${letter}.</strong> ${optionVal}</span><i class="fa-regular fa-circle text-slate-500"></i>`;
+        
+        if (answered[currentIndex] !== undefined) {
+          btn.disabled = true;
+          if (letter === item.ans) {
+            btn.classList.add('border-green-500', 'bg-green-500/20', 'text-green-300');
+            btn.querySelector('i').className = 'fa-solid fa-circle-check text-green-400';
+          } else if (letter === answered[currentIndex]) {
+            btn.classList.add('border-red-500', 'bg-red-500/20', 'text-red-300');
+            btn.querySelector('i').className = 'fa-solid fa-circle-xmark text-red-400';
+          }
+        } else {
+          btn.onclick = () => selectAnswer(letter);
+        }
+        optionsDiv.appendChild(btn);
+      });
+
+      const expBox = document.getElementById('explanationBox');
+      if (answered[currentIndex] !== undefined) {
+        document.getElementById('explanationText').innerText = item.e || `Correct Answer: (${item.ans}). This is a key Mechanical Engineering & PIPE standard concept.`;
+        expBox.classList.remove('hidden');
+      } else {
+        expBox.classList.add('hidden');
+      }
+
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      document.getElementById('nextBtn').disabled = currentIndex === quizData.length - 1;
+    }
+
+    function selectAnswer(selected) {
+      const item = quizData[currentIndex];
+      answered[currentIndex] = selected;
+      
+      if (selected === item.ans) {
+        score++;
+      }
+
+      document.getElementById('scoreText').innerText = score;
+      document.getElementById('totalAttempted').innerText = Object.keys(answered).length;
+      
+      loadQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentIndex < quizData.length - 1) {
+        currentIndex++;
+        loadQuestion();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        loadQuestion();
+      }
+    }
+
+    function jumpToQuestion() {
+      const input = document.getElementById('jumpInput');
+      const val = parseInt(input.value);
+      if (val >= 1 && val <= quizData.length) {
+        currentIndex = val - 1;
+        loadQuestion();
+      }
+    }
+
+    function randomQuestion() {
+      currentIndex = Math.floor(Math.random() * quizData.length);
+      loadQuestion();
+    }
+
+    // Initialize after load
+    window.onload = loadQuestion;
+  </script>
+</body>
+</html>
